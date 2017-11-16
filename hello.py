@@ -9,9 +9,14 @@ DIR_NAME = "sourcedir"
 REMOTE_URL = "ssh://git@git.priv.blablacar.net:7999/android/app-android-v3.git"
 BRANCH = "develop"
 
+DB_CLAZZ = pickledb.load('clazz.db', False)
+DB_TEST = pickledb.load('test.db', False)
+
+
 # initial value is old enough
 # this acts as a watermark
 lastcommit="2df56d7445f"
+
 
 @app.route('/')
 def hello_world():
@@ -41,24 +46,42 @@ def tests(commit):
         print item 
         print item.hexshi
 
-    db = pickledb.load('test.db', False)
-    db.set('key', commit) 
-    value = db.get('key')
-
-
     # update lastcommit
     lastcommit = commit
 
     return 'Fetching the tests to run for commit %s' % commit 
 
+@app.route('/add', methods=['GET'])
+def provideDBs():
+    saveClazz()
+    saveTests()
+    return "Added"
+
 def saveClazz():
-    with open('appClass.csv', newline='') as csvfile:
+    with open('appClass.csv', 'rb') as csvfile:
         clazzReader = csv.reader(csvfile, delimiter=',')
         for row in clazzReader:
-            db.set(row[1], row[2])
+            putClazz(row[0], row[1])
 
 def saveTests():
-    with open('testFile.csv', newline='') as csvfile:
+    with open('testFile.csv', 'rb') as csvfile:
         testReader = csv.reader(csvfile, delimiter=',')
         for row in testReader:
-            db.set(row[1], row[2])
+            putTest(row[0], row[1])
+
+def putClazz(k, v):
+    values = DB_CLAZZ.get(k)
+    if values:
+        values.append(v)
+        DB_CLAZZ.set(k, values)
+    else:
+        DB_CLAZZ.set(k, [v])
+
+def putTest(k, v):
+    values = DB_TEST.get(k)
+    if values:
+        values.append(v)
+        DB_TEST.set(k, values)
+    else:
+        DB_TEST.set(k, [v])
+
