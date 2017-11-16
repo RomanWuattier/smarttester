@@ -1,6 +1,7 @@
 from flask import Flask
 import pickledb
 import git, os, shutil
+import csv
 
 app = Flask(__name__)
 
@@ -51,5 +52,15 @@ def tests(commit):
 
     return 'Fetching the tests to run for commit %s' % commit 
 
+def saveClazz():
+    with open('appClass.csv', newline='') as csvfile:
+        clazzReader = csv.reader(csvfile, delimiter=',')
+        for row in clazzReader:
+            db.set(row[1], row[2])
 
+def saveTests():
+    with open('testFile.csv', newline='') as csvfile:
+        testReader = csv.reader(csvfile, delimiter=',')
+        for row in testReader:
+            db.set(row[1], row[2])
 
